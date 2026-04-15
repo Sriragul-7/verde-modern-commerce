@@ -11,6 +11,7 @@ import couponRoutes from "./routes/coupon.route.js";
 import paymentRoutes from "./routes/payment.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
 import { connectDB } from "./lib/db.js";
+import redis from "./lib/redis.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "..", ".env"), quiet: true });
@@ -52,7 +53,11 @@ app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
 app.get("/api/health", (_req, res) => {
-  res.status(200).json({ status: "ok", environment: process.env.NODE_ENV || "development" });
+  res.status(200).json({
+    status: "ok",
+    environment: process.env.NODE_ENV || "development",
+    cache: redis.isConfigured ? "upstash" : "disabled",
+  });
 });
 
 app.use("/api/auth", authRoutes);

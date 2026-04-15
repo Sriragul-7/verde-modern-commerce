@@ -61,17 +61,33 @@ const AnalyticsTab = () => {
         <ResponsiveContainer width="100%" height={360}>
           <LineChart data={dailySalesData}>
             <CartesianGrid stroke="rgba(255,255,255,0.06)" />
-            <XAxis dataKey="date" stroke="#d0f7ea" />
-            <YAxis yAxisId="left" stroke="#d0f7ea" />
-            <YAxis yAxisId="right" orientation="right" stroke="#d0f7ea" />
+            <XAxis
+              dataKey="date"
+              stroke="#d0f7ea"
+              tick={{ fontFamily: "Arial, sans-serif", fontSize: 12 }}
+            />
+            <YAxis
+              yAxisId="left"
+              stroke="#d0f7ea"
+              tick={{ fontFamily: "Arial, sans-serif", fontSize: 12 }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              stroke="#d0f7ea"
+              tick={{ fontFamily: "Arial, sans-serif", fontSize: 12 }}
+            />
             <Tooltip
               contentStyle={{
                 background: "#0d1d18",
                 border: "1px solid rgba(255,255,255,0.08)",
                 borderRadius: "18px",
+                fontFamily: "Arial, sans-serif",
               }}
+              labelStyle={{ fontFamily: "Arial, sans-serif", fontWeight: 600 }}
+              itemStyle={{ fontFamily: "Arial, sans-serif" }}
             />
-            <Legend />
+            <Legend wrapperStyle={{ fontFamily: "Arial, sans-serif" }} />
             <Line yAxisId="left" type="monotone" dataKey="sales" stroke="#63f5c7" strokeWidth={3} name="Sales" />
             <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#f7c76a" strokeWidth={3} name="Revenue" />
           </LineChart>
@@ -84,7 +100,7 @@ const AnalyticsTab = () => {
 const AnalyticsCard = (props) => (
   <article className="glass-panel relative overflow-hidden rounded-[1.75rem] p-5">
     <p className="text-sm uppercase tracking-[0.24em] text-emerald-100/65">{props.title}</p>
-    <p className="mt-3 text-3xl text-white">{props.value}</p>
+    <p className="mt-3 font-sans text-3xl font-semibold tracking-tight text-white">{props.value}</p>
     <div className="absolute -bottom-4 -right-4 text-emerald-100/10">
       <props.icon className="size-20" />
     </div>

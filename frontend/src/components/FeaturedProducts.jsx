@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
+import { useUserStore } from "../stores/useUserStore.js";
 import { formatCurrency } from "../lib/format";
 
 const FeaturedProducts = ({ featuredProducts }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(4);
   const { addToCart } = useCartStore();
+  const { user } = useUserStore();
 
   useEffect(() => {
     const handleResize = () => {
@@ -22,6 +25,15 @@ const FeaturedProducts = ({ featuredProducts }) => {
   }, []);
 
   const maxIndex = Math.max(featuredProducts.length - itemsPerPage, 0);
+
+  const handleAddToCart = (product) => {
+    if (!user) {
+      toast.error("Please login to add products to cart", { id: "login" });
+      return;
+    }
+
+    addToCart(product);
+  };
 
   return (
     <section className="glass-panel rounded-[2rem] px-5 py-8 sm:px-8">
@@ -64,7 +76,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
                     </p>
                     <button
                       type="button"
-                      onClick={() => addToCart(product)}
+                      onClick={() => handleAddToCart(product)}
                       className="w-full rounded-full bg-emerald-300 px-4 py-3 text-sm font-medium text-slate-950 transition hover:bg-emerald-200"
                     >
                       <span className="inline-flex items-center gap-2">

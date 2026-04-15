@@ -17,13 +17,14 @@ export const getFeaturedProducts = async (_req, res) => {
     let featuredProducts = null;
 
     try {
-      featuredProducts = await redis.get("featured_products");
+      const cachedFeaturedProducts = await redis.get("featured_products");
+      featuredProducts = normalizeFeaturedProductsCache(cachedFeaturedProducts);
     } catch (redisError) {
       console.log("Redis get failed, using database only:", redisError?.message);
     }
 
     if (featuredProducts) {
-      return res.json(JSON.parse(featuredProducts));
+      return res.json(featuredProducts);
     }
 
     featuredProducts = await Product.find({ isFeatured: true }).lean();
@@ -33,7 +34,7 @@ export const getFeaturedProducts = async (_req, res) => {
     }
 
     try {
-      await redis.set("featured_products", JSON.stringify(featuredProducts));
+      await redis.set("featured_products", featuredProducts);
     } catch (redisError) {
       console.log("Redis set failed, skipping cache:", redisError?.message);
     }
@@ -158,8 +159,28 @@ export const toggleFeaturedProduct = async (req, res) => {
 async function updateFeaturedProductsCache() {
   try {
     const featuredProducts = await Product.find({ isFeatured: true }).lean();
-    await redis.set("featured_products", JSON.stringify(featuredProducts));
+    await redis.set("featured_products", featuredProducts);
   } catch (error) {
     console.log("Error updating featured products cache", error.message);
   }
+}
+
+function normalizeFeaturedProductsCache(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return JSON.parse(value);
+  }
+
+  if (typeof value === "object") {
+    return value;
+  }
+
+  return null;
 }

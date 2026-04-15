@@ -3,6 +3,7 @@ import Coupon from "../models/coupon.model.js";
 import stripe from "../lib/stripe.js";
 import Order from "../models/order.model.js";
 import User from "../models/user.model.js";
+import Product from "../models/product.model.js";
 
 dotenv.config();
 
@@ -16,22 +17,37 @@ export const createCheckoutSession = async (req, res) => {
       return res.status(400).json({ error: "Invalid or empty products" });
     }
 
+    const normalizedCartItems = normalizeCartItems(products);
+
+    if (normalizedCartItems.length === 0) {
+      return res.status(400).json({ error: "Cart items are invalid" });
+    }
+
+    const productIds = normalizedCartItems.map((product) => product.productId);
+    const dbProducts = await Product.find({ _id: { $in: productIds } }).lean();
+    const productsById = new Map(dbProducts.map((product) => [product._id.toString(), product]));
+
+    if (dbProducts.length !== normalizedCartItems.length) {
+      return res.status(400).json({ error: "One or more products no longer exist" });
+    }
+
     let totalAmount = 0;
 
-    const lineItems = products.map((product) => {
+    const lineItems = normalizedCartItems.map(({ productId, quantity }) => {
+      const product = productsById.get(productId);
       const amount = Math.round(product.price * 100);
-      totalAmount += amount * (product.quantity || 1);
+      totalAmount += amount * quantity;
 
       return {
         price_data: {
           currency: "inr",
           product_data: {
             name: product.name,
-            images: [product.image],
+            images: product.image ? [product.image] : [],
           },
           unit_amount: amount,
         },
-        quantity: product.quantity || 1,
+        quantity,
       };
     });
 
@@ -66,11 +82,15 @@ export const createCheckoutSession = async (req, res) => {
         userId: req.user._id.toString(),
         couponCode: couponCode || "",
         products: JSON.stringify(
-          products.map((product) => ({
-            id: product._id,
-            quantity: product.quantity,
-            price: product.price,
-          }))
+          normalizedCartItems.map(({ productId, quantity }) => {
+            const product = productsById.get(productId);
+
+            return {
+              id: product._id,
+              quantity,
+              price: product.price,
+            };
+          })
         ),
       },
     });
@@ -104,6 +124,10 @@ export const checkoutSuccess = async (req, res) => {
     const userId = metadata.userId;
     if (!userId) {
       return res.status(400).json({ success: false, message: "User ID missing from session metadata." });
+    }
+
+    if (userId !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "This checkout session does not belong to the current user." });
     }
 
     const existingOrder = await Order.findOne({ stripeSessionId: sessionId });
@@ -171,4 +195,13 @@ async function createNewCoupon(userId) {
 
   await newCoupon.save();
   return newCoupon;
+}
+
+function normalizeCartItems(products) {
+  return products
+    .map((product) => ({
+      productId: product?._id?.toString?.() || "",
+      quantity: Number(product?.quantity) || 0,
+    }))
+    .filter((product) => product.productId && Number.isInteger(product.quantity) && product.quantity > 0);
 }

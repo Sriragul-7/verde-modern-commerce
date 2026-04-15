@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import axios from "../lib/axios.js";
 import { useCartStore } from "../stores/useCartStore";
 
-const PurchaseSuccessPage = () => {
+const CheckoutSuccessPage = () => {
   const { clearCart, getCartItems } = useCartStore();
   const hasProcessed = useRef(false);
   const [showConfetti, setShowConfetti] = useState(true);
@@ -52,7 +52,13 @@ const PurchaseSuccessPage = () => {
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-4">
       {showConfetti && (
-        <Confetti width={window.innerWidth} height={window.innerHeight} gravity={0.12} recycle={false} numberOfPieces={320} />
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          gravity={0.12}
+          recycle={false}
+          numberOfPieces={320}
+        />
       )}
 
       <section className="glass-panel relative w-full max-w-2xl rounded-[2rem] p-8 text-center sm:p-10">
@@ -98,4 +104,4 @@ const PurchaseSuccessPage = () => {
   );
 };
 
-export default PurchaseSuccessPage;
+export default CheckoutSuccessPage;

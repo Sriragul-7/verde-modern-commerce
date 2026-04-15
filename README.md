@@ -126,6 +126,99 @@ MERN Stack | Problem Solving
 
 <img width="1907" height="913" alt="image" src="https://github.com/user-attachments/assets/411f5f9f-af38-460c-81db-17fb9a236ce4" />
 
+---
+
+## Deployment Checklist
+
+1. Install Node.js 18 or later.
+2. Copy `.env.example` to `.env`.
+3. Fill in `MONGO_URI`, `ACCESS_TOKEN_SECRET`, `REFRESH_TOKEN_SECRET`, and `CLIENT_URI`.
+4. Add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` for persistent refresh-token storage and caching.
+5. Add Cloudinary and Stripe keys if you need product uploads and payments.
+
+## Local Run
+
+Install dependencies separately:
+
+```bash
+cd backend
+npm install
+```
+
+```bash
+cd frontend
+npm install
+```
+
+Run the backend:
+
+```bash
+cd backend
+npm run dev
+```
+
+Run the frontend:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Frontend runs on `http://localhost:5173` and the API on `http://localhost:5000`.
+
+## Production Build
+
+Build the frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+Start the backend:
+
+```bash
+cd backend
+npm start
+```
+
+The backend serves the built frontend from `frontend/dist` when `NODE_ENV=production`.
+
+## Recommended Deployment Flow
+
+### Option 1: Single service
+
+Use one Node service for both API and frontend:
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+```bash
+cd backend
+npm install
+set NODE_ENV=production
+npm start
+```
+
+Point your platform's backend start command to `npm start` in the `backend` directory.
+
+### Option 2: Split frontend and backend
+
+- Deploy the backend as a Node service from `backend/` with `npm start`.
+- Deploy the frontend separately from `frontend/` with `npm run build`.
+- Set `VITE_API_BASE_URL` in the frontend environment to your backend base URL plus `/api`.
+- Set `CLIENT_URI` in the backend environment to the deployed frontend URL.
+
+## Smoke Tests Before Go-Live
+
+1. `cd frontend && npm run lint`
+2. `cd frontend && npm run build`
+3. Open `/api/health`
+4. Verify signup, login, category browsing, cart updates, checkout, and admin product creation
+
 
 
 
