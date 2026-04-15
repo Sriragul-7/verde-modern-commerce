@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
@@ -26,6 +27,10 @@ if (missingEnvVars.length > 0) {
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 const isProduction = process.env.NODE_ENV === "production";
+const frontendDistPath = path.resolve(__dirname, "../frontend/dist");
+const shouldServeFrontend =
+  (process.env.SERVE_FRONTEND === "true" || process.env.SERVE_FRONTEND === "1") &&
+  fs.existsSync(frontendDistPath);
 const rawClientOrigins =
   process.env.CLIENT_URI || "http://localhost:5173,http://localhost:5174";
 const allowedOrigins = rawClientOrigins
@@ -43,7 +48,7 @@ app.use(
         return;
       }
 
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     credentials: true,
   })
@@ -67,8 +72,7 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
-if (isProduction) {
-  const frontendDistPath = path.resolve(__dirname, "../frontend/dist");
+if (isProduction && shouldServeFrontend) {
   app.use(express.static(frontendDistPath));
 
   app.get(/^(?!\/api).*/, (_req, res) => {
