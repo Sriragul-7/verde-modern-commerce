@@ -14,7 +14,8 @@ const categories = [
 ];
 
 const HomePage = () => {
-  const { loadingFeatured, featuredProducts, fetchFeaturedProducts } = useProductStore();
+  const { loadingFeatured, featuredProducts, featuredProductsLoadedAt, fetchFeaturedProducts } =
+    useProductStore();
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -37,7 +38,7 @@ const HomePage = () => {
         </div>
 
         <section className="mt-10">
-          {loadingFeatured && featuredProducts.length === 0 ? (
+          {loadingFeatured && featuredProductsLoadedAt === 0 ? (
             <LoadingSpinner compact label="Loading on demand from redis" />
           ) : featuredProducts.length > 0 ? (
             <FeaturedProducts featuredProducts={featuredProducts} />

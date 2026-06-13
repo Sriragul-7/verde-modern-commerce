@@ -29,7 +29,7 @@ function App() {
     }
 
     const timer = setTimeout(() => {
-      getCartItems();
+      getCartItems({ silent: true, skipAuthRedirect: true });
     }, 300);
 
     return () => clearTimeout(timer);

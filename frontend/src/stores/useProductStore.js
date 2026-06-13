@@ -3,6 +3,7 @@ import { toast } from "react-hot-toast";
 import axios from "../lib/axios.js";
 
 const FEATURED_PRODUCTS_TTL_MS = 5 * 60 * 1000;
+let featuredProductsRequest = null;
 
 export const useProductStore = create((set, get) => ({
   products: [],
@@ -101,29 +102,40 @@ export const useProductStore = create((set, get) => ({
   },
 
   fetchFeaturedProducts: async ({ force = false } = {}) => {
-    const { featuredProducts, featuredProductsLoadedAt } = get();
+    const { featuredProducts, featuredProductsLoadedAt, loadingFeatured } = get();
     const cacheIsFresh =
       !force &&
-      featuredProducts.length > 0 &&
+      featuredProductsLoadedAt > 0 &&
       Date.now() - featuredProductsLoadedAt < FEATURED_PRODUCTS_TTL_MS;
 
     if (cacheIsFresh) {
       return featuredProducts;
     }
 
-    set({ loadingFeatured: true, error: null });
-    try {
-      const response = await axios.get("/products/featured");
-      set({
-        featuredProducts: response.data,
-        featuredProductsLoadedAt: Date.now(),
-        loadingFeatured: false,
-      });
-      return response.data;
-    } catch (error) {
-      set({ error: "Failed to fetch featured products", loadingFeatured: false });
-      toast.error(error.response?.data?.error || "Failed to fetch featured products");
-      return [];
+    if (loadingFeatured && featuredProductsRequest) {
+      return featuredProductsRequest;
     }
+
+    set({ loadingFeatured: true, error: null });
+    featuredProductsRequest = axios
+      .get("/products/featured")
+      .then((response) => {
+        set({
+          featuredProducts: response.data,
+          featuredProductsLoadedAt: Date.now(),
+          loadingFeatured: false,
+        });
+        return response.data;
+      })
+      .catch((error) => {
+        set({ error: "Failed to fetch featured products", loadingFeatured: false });
+        toast.error(error.response?.data?.error || "Failed to fetch featured products");
+        return [];
+      })
+      .finally(() => {
+        featuredProductsRequest = null;
+      });
+
+    return featuredProductsRequest;
   },
 }));

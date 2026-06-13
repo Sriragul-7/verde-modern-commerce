@@ -49,14 +49,16 @@ export const useCartStore = create((set, get) => ({
     toast.success("Coupon removed");
   },
 
-  getCartItems: async () => {
+  getCartItems: async ({ silent = false, skipAuthRedirect = false } = {}) => {
     try {
-      const res = await axios.get("/cart");
+      const res = await axios.get("/cart", { skipAuthRedirect });
       set({ cart: res.data });
       get().calculateTotals();
     } catch (error) {
       set({ cart: [] });
-      toast.error(error.response?.data?.message || "An error occurred");
+      if (!silent) {
+        toast.error(error.response?.data?.message || "An error occurred");
+      }
     }
   },
 
