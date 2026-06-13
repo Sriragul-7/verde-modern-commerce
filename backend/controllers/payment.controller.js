@@ -126,10 +126,6 @@ export const checkoutSuccess = async (req, res) => {
       return res.status(400).json({ success: false, message: "User ID missing from session metadata." });
     }
 
-    if (userId !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: "This checkout session does not belong to the current user." });
-    }
-
     const existingOrder = await Order.findOne({ stripeSessionId: sessionId });
     if (existingOrder) {
       await User.findByIdAndUpdate(userId, { $set: { cartItems: [] } });

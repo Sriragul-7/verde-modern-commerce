@@ -5,9 +5,11 @@ import { ArrowRight, CheckCircle2, HeartHandshake } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "../lib/axios.js";
 import { useCartStore } from "../stores/useCartStore";
+import { useUserStore } from "../stores/useUserStore";
 
 const CheckoutSuccessPage = () => {
   const { clearCart, getCartItems } = useCartStore();
+  const { user } = useUserStore();
   const hasProcessed = useRef(false);
   const [showConfetti, setShowConfetti] = useState(true);
 
@@ -32,7 +34,9 @@ const CheckoutSuccessPage = () => {
         const response = await axios.post("/payments/checkout-success", { sessionId });
         if (response.data?.success) {
           clearCart();
-          await getCartItems();
+          if (user) {
+            await getCartItems();
+          }
           toast.success("Order confirmed");
         } else {
           toast.error("Order confirmation incomplete. Please contact support.");
@@ -46,7 +50,7 @@ const CheckoutSuccessPage = () => {
 
     const timer = setTimeout(() => setShowConfetti(false), 5000);
     return () => clearTimeout(timer);
-  }, [clearCart, getCartItems]);
+  }, [clearCart, getCartItems, user]);
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-4">
