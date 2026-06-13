@@ -20,10 +20,14 @@ const storeRefreshToken = async (userId, refreshToken) => {
   });
 };
 
+const isHostedClient = (process.env.CLIENT_URI || "")
+  .split(",")
+  .some((origin) => origin.trim().startsWith("https://"));
+
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: process.env.NODE_ENV === "production" || isHostedClient,
+  sameSite: process.env.NODE_ENV === "production" || isHostedClient ? "none" : "lax",
   path: "/",
 };
 

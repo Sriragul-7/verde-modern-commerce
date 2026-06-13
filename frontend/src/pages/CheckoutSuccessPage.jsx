@@ -38,7 +38,6 @@ const CheckoutSuccessPage = () => {
           toast.error("Order confirmation incomplete. Please contact support.");
         }
       } catch (error) {
-        clearCart();
         toast.error(error.response?.data?.message || "Could not complete order confirmation.");
       }
     };

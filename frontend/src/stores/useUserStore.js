@@ -53,10 +53,22 @@ export const useUserStore = create((set, get) => ({
     set({ checkingAuth: true });
 
     try {
-      const response = await axios.get("/auth/profile");
+      const response = await axios.get("/auth/profile", { skipAuthRedirect: true });
       set({ user: response.data.user || response.data, checkingAuth: false });
     } catch {
-      set({ checkingAuth: false, user: null });
+      try {
+        await axios.post("/auth/refresh-token", null, {
+          skipAuthRedirect: true,
+          skipAuthRefresh: true,
+        });
+        const response = await axios.get("/auth/profile", {
+          skipAuthRedirect: true,
+          skipAuthRefresh: true,
+        });
+        set({ user: response.data.user || response.data, checkingAuth: false });
+      } catch {
+        set({ checkingAuth: false, user: null });
+      }
     }
   },
 

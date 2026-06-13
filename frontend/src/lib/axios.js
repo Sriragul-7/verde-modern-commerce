@@ -13,11 +13,13 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const isRefreshRequest = originalRequest?.url?.includes("/auth/refresh-token");
 
     if (
       error.response?.status === 401 &&
       !originalRequest?._retry &&
-      !originalRequest?.url?.includes("/auth/refresh-token")
+      !isRefreshRequest &&
+      !originalRequest?.skipAuthRefresh
     ) {
       originalRequest._retry = true;
 
@@ -31,9 +33,8 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         refreshPromise = null;
-        localStorage.clear();
 
-        if (window.location.pathname !== "/login") {
+        if (!originalRequest?.skipAuthRedirect && window.location.pathname !== "/login") {
           window.location.href = "/login";
         }
 
